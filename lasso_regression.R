@@ -1,0 +1,33 @@
+library(quadprog)
+s<-s[-1001]
+k<-k[-1001]
+if(any(is.na(k))){
+  k[is.na(k)]<-0
+  s[is.na(s)]<-0
+}
+Amat<-matrix(-s,nrow=1)
+bvec<--0.9*t
+i<-0
+res<-matrix(,1,1001)
+while(t(s)%*%k>0.9*t){
+  Dmat<-2*t(as.matrix(x[,1:1000]))%*%as.matrix(x[,1:1000])
+  dvec<--2*t(as.matrix(x[,1001]))%*%as.matrix(x[,1:1000])
+  k<-solve.QP(Dmat,dvec,t(Amat),bvec)
+  k<-k$solution
+  s<-sign(k)
+  Amat<-rbind(Amat,-t(s))
+  bvec<-rbind(bvec,-0.9*t)
+  i<-i+1
+  res[1,i]<-t(s)%*%k
+  if(i>1000){break}
+}
+plot(1:i,res[1,1:i]/(sum(beta)))
+lines(1:i,res[1,1:i]/(sum(beta)))
+cat(which(abs(k)>0.1))
+f<-function(i){
+which(abs(k)>0.1)==index[i]
+}
+TP<-sum(apply(t(1:length(index)),2,f))/10
+FP<-1-TP
+cat("TP=",TP)
+cat("FP=",FP)
